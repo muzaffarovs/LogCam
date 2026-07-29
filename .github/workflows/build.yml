@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # macOS runners are the only way to compile for iOS. Free on public repos;
+    # on private repos they bill against the free minute allowance at 10x.
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show selected Xcode
+        run: xcodebuild -version
+
+      - name: Build for device
+        # No signing: this job exists to surface compile errors, which needs no
+        # Apple account at all. Targeting `iphoneos` rather than the simulator
+        # matters — AVFoundation capture APIs this app relies on are thinner or
+        # absent in the simulator SDK, so a simulator build would prove less.
+        run: |
+          xcodebuild build \
+            -project LogCam.xcodeproj \
+            -scheme LogCam \
+            -configuration Debug \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+          | xcpretty && exit ${PIPESTATUS[0]}

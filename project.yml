@@ -1,0 +1,33 @@
+# Fallback project definition for XcodeGen (`brew install xcodegen && xcodegen`).
+#
+# The checked-in LogCam.xcodeproj is the source of truth and requires Xcode 16+
+# (it uses a file-system-synchronized group). If you are on Xcode 15 or the
+# project file ever gets mangled by a merge, delete it and regenerate from here.
+name: LogCam
+options:
+  bundleIdPrefix: com.logcam
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+targets:
+  LogCam:
+    type: application
+    platform: iOS
+    sources:
+      - path: LogCam
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.logcam.LogCam
+        MARKETING_VERSION: "0.1"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UIStatusBarHidden: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSCameraUsageDescription: LogCam needs the camera to record ProRes video.
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: LogCam records audio alongside your video.
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: LogCam saves finished recordings to your photo library.
