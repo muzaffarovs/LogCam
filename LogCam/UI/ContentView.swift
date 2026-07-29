@@ -27,6 +27,10 @@ struct ContentView: View {
             if camera.sessionState == .running {
                 controls
             }
+
+            if let message = camera.lastError {
+                ErrorBanner(message: message) { camera.clearError() }
+            }
         }
         .task {
             await camera.start()
@@ -101,6 +105,39 @@ struct ContentView: View {
             .tint(.yellow)
             .disabled(camera.isRecording)
             .opacity(camera.isRecording ? 0.4 : 1)
+    }
+}
+
+/// Non-fatal status, shown in-frame because there is no attached debugger to read.
+/// Sits above the HUD and stays until tapped, so a failure during a take is still
+/// legible afterwards.
+private struct ErrorBanner: View {
+    let message: String
+    let dismiss: () -> Void
+
+    var body: some View {
+        VStack {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.yellow)
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.white)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                Image(systemName: "xmark")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+            .padding(12)
+            .background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .padding(.horizontal, 16)
+            .onTapGesture(perform: dismiss)
+
+            Spacer()
+        }
+        .padding(.top, 90)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 }
 

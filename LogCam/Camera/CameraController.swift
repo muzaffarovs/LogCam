@@ -95,6 +95,12 @@ final class CameraController: NSObject, ObservableObject {
         }
     }
 
+    /// Dismisses the error banner. Errors are non-fatal status, not alerts — the
+    /// session keeps running underneath them.
+    func clearError() {
+        lastError = nil
+    }
+
     func stop() {
         durationTimer?.cancel()
         sessionQueue.async { [session] in
