@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Combine
 
 /// Manual focus, exposure (shutter + ISO), and white balance for the active camera.
@@ -162,7 +162,7 @@ final class ManualControls: ObservableObject {
 
         let position = min(max(lensPosition, 0), 1)
         perform(on: device) { device in
-            device.setFocusModeLockedWithLensPosition(position, completionHandler: nil)
+            device.setFocusModeLocked(lensPosition: position, completionHandler: nil)
         }
     }
 
@@ -199,13 +199,13 @@ final class ManualControls: ObservableObject {
             // range; passing those to AVFoundation raises an exception rather than
             // failing softly, so clamp every channel first.
             let gains = Self.clamp(device.deviceWhiteBalanceGains(for: values), for: device)
-            device.setWhiteBalanceModeLockedWithDeviceWhiteBalanceGains(gains, completionHandler: nil)
+            device.setWhiteBalanceModeLocked(with: gains, completionHandler: nil)
         }
     }
 
     /// Recent SDKs nest the white-balance value types inside `AVCaptureDevice`;
     /// the old top-level `AVCaptureWhiteBalanceGains` spelling is now unavailable.
-    private static func clamp(
+    nonisolated private static func clamp(
         _ gains: AVCaptureDevice.WhiteBalanceGains,
         for device: AVCaptureDevice
     ) -> AVCaptureDevice.WhiteBalanceGains {

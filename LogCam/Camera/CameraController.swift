@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Combine
 import UIKit
 
@@ -267,7 +267,7 @@ final class CameraController: NSObject, ObservableObject {
     ///   not enough to disambiguate — ranking on size *then* log support picks the
     ///   10-bit one without ever sacrificing resolution to get it. The 10-bit format
     ///   is the better ProRes base regardless of whether Log is switched on.
-    private static func selectBestFormat(on device: AVCaptureDevice) throws {
+    nonisolated private static func selectBestFormat(on device: AVCaptureDevice) throws {
         let candidates = device.formats.filter { format in
             format.videoSupportedFrameRateRanges.contains { $0.maxFrameRate >= 30 }
         }

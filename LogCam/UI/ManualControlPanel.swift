@@ -111,6 +111,16 @@ struct ManualControlPanel: View {
 
     // MARK: - White balance
 
+    // Kept as properties rather than inline arguments: a `...` operator split
+    // across lines reads as the end of an argument, not a range.
+    private var temperatureRange: ClosedRange<Double> {
+        Double(ManualControls.temperatureRange.lowerBound)...Double(ManualControls.temperatureRange.upperBound)
+    }
+
+    private var tintRange: ClosedRange<Double> {
+        Double(ManualControls.tintRange.lowerBound)...Double(ManualControls.tintRange.upperBound)
+    }
+
     private var whiteBalanceSection: some View {
         VStack(spacing: 10) {
             SectionHeader(
@@ -125,8 +135,7 @@ struct ManualControlPanel: View {
                     get: { Double(manual.temperature) },
                     set: { manual.temperature = Float($0) }
                 ),
-                range: Double(ManualControls.temperatureRange.lowerBound)
-                    ...Double(ManualControls.temperatureRange.upperBound),
+                range: temperatureRange,
                 readout: "\(Int(manual.temperature))K",
                 disabled: manual.autoWhiteBalance
             )
@@ -137,8 +146,7 @@ struct ManualControlPanel: View {
                     get: { Double(manual.tint) },
                     set: { manual.tint = Float($0) }
                 ),
-                range: Double(ManualControls.tintRange.lowerBound)
-                    ...Double(ManualControls.tintRange.upperBound),
+                range: tintRange,
                 readout: "\(Int(manual.tint))",
                 disabled: manual.autoWhiteBalance
             )
