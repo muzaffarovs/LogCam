@@ -192,7 +192,7 @@ final class ManualControls: ObservableObject {
             return
         }
 
-        let values = AVCaptureWhiteBalanceTemperatureAndTintValues(temperature: temperature, tint: tint)
+        let values = AVCaptureDevice.WhiteBalanceTemperatureAndTintValues(temperature: temperature, tint: tint)
 
         perform(on: device) { device in
             // Converting temperature/tint can yield gains outside the device's legal
@@ -203,13 +203,15 @@ final class ManualControls: ObservableObject {
         }
     }
 
+    /// Recent SDKs nest the white-balance value types inside `AVCaptureDevice`;
+    /// the old top-level `AVCaptureWhiteBalanceGains` spelling is now unavailable.
     private static func clamp(
-        _ gains: AVCaptureWhiteBalanceGains,
+        _ gains: AVCaptureDevice.WhiteBalanceGains,
         for device: AVCaptureDevice
-    ) -> AVCaptureWhiteBalanceGains {
+    ) -> AVCaptureDevice.WhiteBalanceGains {
         let upper = device.maxWhiteBalanceGain
         func bound(_ value: Float) -> Float { min(max(value, 1.0), upper) }
-        return AVCaptureWhiteBalanceGains(
+        return AVCaptureDevice.WhiteBalanceGains(
             redGain: bound(gains.redGain),
             greenGain: bound(gains.greenGain),
             blueGain: bound(gains.blueGain)
