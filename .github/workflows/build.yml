@@ -17,19 +17,44 @@ jobs:
       - name: Show selected Xcode
         run: xcodebuild -version
 
-      - name: Build for device
-        # No signing: this job exists to surface compile errors, which needs no
-        # Apple account at all. Targeting `iphoneos` rather than the simulator
-        # matters — AVFoundation capture APIs this app relies on are thinner or
-        # absent in the simulator SDK, so a simulator build would prove less.
+      # Archiving compiles as well, so this single step is both the compile-error
+      # check and the source of the shippable app. No Apple account is involved:
+      # signing is disabled here and performed later by AltStore on the device
+      # owner's machine, using their free Apple ID.
+      - name: Archive (unsigned)
         run: |
-          xcodebuild build \
+          set -o pipefail
+          xcodebuild archive \
             -project LogCam.xcodeproj \
             -scheme LogCam \
-            -configuration Debug \
+            -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/LogCam.xcarchive" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            ONLY_ACTIVE_ARCH=NO \
-          | xcpretty && exit ${PIPESTATUS[0]}
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+          | xcpretty
+
+      # `xcodebuild -exportArchive` insists on a signing identity, so it cannot
+      # produce an unsigned .ipa. An .ipa is only a zip with the .app inside a
+      # top-level Payload/ directory, so assemble it directly.
+      - name: Package .ipa
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/LogCam.xcarchive/Products/Applications/LogCam.app"
+          test -d "$APP" || { echo "::error::No .app in archive at $APP"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/pkg/Payload"
+          cp -R "$APP" "$RUNNER_TEMP/pkg/Payload/"
+          cd "$RUNNER_TEMP/pkg"
+          zip -qry "$RUNNER_TEMP/LogCam.ipa" Payload
+          echo "Built $(du -h "$RUNNER_TEMP/LogCam.ipa" | cut -f1) unsigned .ipa"
+
+      - name: Upload .ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: LogCam-unsigned-ipa
+          path: ${{ runner.temp }}/LogCam.ipa
+          if-no-files-found: error
+          retention-days: 30
